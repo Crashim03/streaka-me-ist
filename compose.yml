@@ -6,7 +6,7 @@ services:
     working_dir: "/server"
     ports:
       - "8080:5000"
-    command: sh -c "pip install --no-cache-dir -r requirements.txt && python3 app.py"
+    command: sh -c "pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt && python3 app.py"
 
   mongo:
     image: mongo

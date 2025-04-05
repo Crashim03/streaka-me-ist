@@ -10,6 +10,9 @@ colecao = db.contador
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+dados = {}
+registros = []
+
 # Inicializa valores se não existirem
 def inicializar_dados():
     print("Inicializando dados...")
@@ -40,11 +43,20 @@ def upload_imagem():
 
 @app.route("/atualizar", methods=["POST"])
 def atualizar():
-    nome = request.json.get("nome")
-    delta = request.json.get("delta")
-    colecao.update_one({"nome": nome}, {"$inc": {"quantidade": delta}})
-    novo_valor = colecao.find_one({"nome": nome})["quantidade"]
-    return jsonify({"quantidade": novo_valor})
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    data = request.json.get()
+    nome = data['nome']
+    delta = data['delta']
+    
+    # Atualiza o valor de 'tu' ou 'amigo' (armazena no dicionário)
+    dados[nome] += delta
+    
+    # Adiciona o registro de ação
+    acao = 'Adicionado' if delta > 0 else 'Removido'
+    registros.append({
+        'data': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'quem': nome.capitalize(),
+        'acao': f"{acao} {abs(delta)}"
+    })
+    
+    # Retorna o novo valor para o frontend
+    return jsonify({'quantidade': dados[nome]})
