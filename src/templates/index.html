@@ -12,9 +12,7 @@
     <h1>Contador de Bebidas 🍻</h1>
 
     <div class="user">
-      <h2>Ana: <span id="contador-tu">{{ dados['Ana'] }}</span></h2>
-      <!-- <button onclick="alterar('tu', 1)">+1</button>
-      <button onclick="alterar('tu', -1)">-1</button> -->
+      <h2>Ana: <span id="contador-ana">{{ counts['Ana'] }}</span></h2>
       <h3>Enviar Foto 📸</h3>
       <form id="form-imagem-ana" enctype="multipart/form-data">
         <input type="file" name="imagem" accept="image/*" required />
@@ -23,9 +21,11 @@
     </div>
 
     <div class="user">
-      <h2>Alex: <span id="contador-amigo">{{ dados['alex'] }}</span></h2>
-      <!-- <button onclick="alterar('amigo', 1)">+1</button>
-      <button onclick="alterar('amigo', -1)">-1</button> -->
+      <h2>
+        Alex:
+        <span id="contador-alex"> {{ counts['Alex'] }}</span>
+        </span>
+      </h2>
       <h3>Enviar Foto 📸</h3>
       <form id="form-imagem-alex" enctype="multipart/form-data">
         <input type="file" name="imagem" accept="image/*" required />
@@ -34,7 +34,7 @@
     </div>
 
     <h2>Registros de Ações</h2>
-    <table border="1">
+    <table border="1" style="width: 100%;" >
       <thead>
         <tr>
           <th>Data e Hora</th>
@@ -44,7 +44,7 @@
         </tr>
       </thead>
       <tbody id="tabela-registros">
-        {% for registro in dados %} {{registro}}
+        {% for registro in dados %}
         <tr>
           <td>{{ registro.data }}</td>
           <td>{{ registro.nome }}</td>
@@ -110,6 +110,7 @@
           } else {
             alert("Erro ao enviar imagem (Ana).");
           }
+            atualizarDados();
         });
 
       // Envio de imagem para Alex
@@ -137,18 +138,42 @@
           } else {
             alert("Erro ao enviar imagem (Alex).");
           }
+          atualizarDados();
         });
 
-      async function alterar(nome, delta) {
-        const res = await fetch("/atualizar", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nome, delta }),
-        });
-        const data = await res.json();
-        document.getElementById("contador-" + nome).textContent =
-          data.quantidade;
+
+        // Função para atualizar a página com os dados mais recentes
+  async function atualizarDados() {
+    const res = await fetch("/dados-atualizados");
+    if (res.ok) {
+      const data = await res.json();
+      
+      // Atualizando os contadores de bebida
+      for (const nome in data.counts) {
+        const contadorElement = document.getElementById("contador-" + nome.toLowerCase());
+        if (contadorElement) {
+          contadorElement.textContent = data.counts[nome];
+        }
       }
+
+      // Atualizando os registros na tabela
+      const tabelaRegistros = document.getElementById("tabela-registros");
+      tabelaRegistros.innerHTML = ""; // Limpar a tabela existente
+
+      console.log(data.dados);
+
+      data.dados.forEach((registro) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${registro.data}</td>
+          <td>${registro.nome}</td>
+          <td>${registro.acao}</td>
+          <td>${registro.imagem_path ? `<img src="${registro.imagem_path}" alt="Imagem" style="max-width: 100px" />` : 'Sem imagem'}</td>
+        `;
+        tabelaRegistros.appendChild(row);
+      });
+    }
+  }
     </script>
   </body>
 </html>

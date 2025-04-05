@@ -12,13 +12,28 @@ UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 dados = {}
+counts = {}
+
+
+def calcular_quantidades():
+    global dados
+    global counts
+    dados = colecao.find()
+    counts = {}
+    for dado in dados:
+        nome = dado["nome"]
+        if nome not in counts:
+            counts[nome] = 1
+        else:
+            counts[nome] += 1
 
 
 @app.route("/")
 def index():
     print("Acessando a página inicial...")
     dados = colecao.find()
-    return render_template("index.html", dados=dados)
+    calcular_quantidades()
+    return render_template("index.html", dados=dados, counts=counts)
 
 
 @app.route("/upload-imagem-ana", methods=["POST"])
@@ -48,6 +63,7 @@ def upload_imagem(nome_usuario):
         "imagem_path": filepath,
     }
     colecao.insert_one(new_entry)
+    calcular_quantidades()
 
     return jsonify({"mensagem": "Upload feito com sucesso", "caminho": filepath})
 
@@ -74,6 +90,13 @@ def atualizar():
 
     # Retorna o novo valor para o frontend
     return jsonify({"quantidade": quantidade})
+
+
+@app.route("/dados-atualizados", methods=["GET"])
+def dados_atualizados():
+    calcular_quantidades()
+    dados_serializaveis = [{**dado, "_id": str(dado["_id"])} for dado in colecao.find()]
+    return jsonify({"dados": dados_serializaveis, "counts": counts})
 
 
 if __name__ == "__main__":
