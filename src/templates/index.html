@@ -1,90 +1,154 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>Contador de Bebidas</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-</head>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
 
-<body>
+  <body>
     <h1>Contador de Bebidas 🍻</h1>
 
     <div class="user">
-        <h2>Tu: <span id="contador-tu">{{ dados['tu'] }}</span></h2>
-        <button onclick="alterar('tu', 1)">+1</button>
-        <button onclick="alterar('tu', -1)">-1</button>
+      <h2>Ana: <span id="contador-tu">{{ dados['Ana'] }}</span></h2>
+      <!-- <button onclick="alterar('tu', 1)">+1</button>
+      <button onclick="alterar('tu', -1)">-1</button> -->
+      <h3>Enviar Foto 📸</h3>
+      <form id="form-imagem-ana" enctype="multipart/form-data">
+        <input type="file" name="imagem" accept="image/*" required />
+        <button type="submit">Enviar</button>
+      </form>
     </div>
 
     <div class="user">
-        <h2>Amigo: <span id="contador-amigo">{{ dados['amigo'] }}</span></h2>
-        <button onclick="alterar('amigo', 1)">+1</button>
-        <button onclick="alterar('amigo', -1)">-1</button>
+      <h2>Alex: <span id="contador-amigo">{{ dados['alex'] }}</span></h2>
+      <!-- <button onclick="alterar('amigo', 1)">+1</button>
+      <button onclick="alterar('amigo', -1)">-1</button> -->
+      <h3>Enviar Foto 📸</h3>
+      <form id="form-imagem-alex" enctype="multipart/form-data">
+        <input type="file" name="imagem" accept="image/*" required />
+        <button type="submit">Enviar</button>
+      </form>
     </div>
 
     <h2>Registros de Ações</h2>
     <table border="1">
-        <thead>
-            <tr>
-                <th>Data e Hora</th>
-                <th>Quem</th>
-                <th>Ação</th>
-            </tr>
-        </thead>
-        <tbody id="tabela-registros">
-            <!-- Registros serão inseridos aqui -->
-        </tbody>
+      <thead>
+        <tr>
+          <th>Data e Hora</th>
+          <th>Quem</th>
+          <th>Ação</th>
+          <th>Imagem</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-registros">
+        {% for registro in dados %} {{registro}}
+        <tr>
+          <td>{{ registro.data }}</td>
+          <td>{{ registro.nome }}</td>
+          <td>{{ registro.acao }}</td>
+          <td>
+            {% if registro.imagem_path %}
+            <img
+              src="{{ registro.imagem_path }}"
+              alt="Imagem"
+              style="max-width: 100px"
+            />
+            {% else %} Sem imagem {% endif %}
+          </td>
+        </tr>
+
+        {% endfor %}
+      </tbody>
     </table>
 
-
-    <div class="upload">
-        <h2>Enviar Imagem 📸</h2>
-        <form id="form-imagem" enctype="multipart/form-data">
-            <input type="file" name="imagem" accept="image/*" required>
-            <button type="submit">Enviar</button>
-        </form>
+    <div id="imagem-enviada-ana" style="display: none">
+      <h3>Imagem Enviada (Ana):</h3>
+      <img
+        id="imagem-upload-ana"
+        src=""
+        alt="Imagem enviada"
+        style="max-width: 300px; margin-top: 20px"
+      />
     </div>
 
-    <div id="imagem-enviada" style="display: none;">
-        <h3>Imagem Enviada:</h3>
-        <img id="imagem-upload" src="" alt="Imagem enviada" style="max-width: 300px; margin-top: 20px;">
+    <div id="imagem-enviada-alex" style="display: none">
+      <h3>Imagem Enviada (Alex):</h3>
+      <img
+        id="imagem-upload-alex"
+        src=""
+        alt="Imagem enviada"
+        style="max-width: 300px; margin-top: 20px"
+      />
     </div>
-
 
     <script>
-        document.getElementById("form-imagem").addEventListener("submit", async function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const res = await fetch("/upload-imagem", {
-                method: "POST",
-                body: formData
-            });
+      // Envio de imagem para Ana
+      document
+        .getElementById("form-imagem-ana")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const res = await fetch("/upload-imagem-ana", {
+            method: "POST",
+            body: formData,
+          });
 
-            if (res.ok) {
-                const data = await res.json();
-                const imagemPath = data.caminho; // Caminho da imagem no servidor
-                // const imagemUrl = imagemPath.replace('static', ''); // Remover "static" para montar o caminho correto no HTML
-
-                // Exibir a imagem
-                const imagemElement = document.getElementById("imagem-upload");
-                imagemElement.src = imagemPath;
-                document.getElementById("imagem-enviada").style.display = 'block';
-
-                alert("Imagem enviada com sucesso!");
-            } else {
-                alert("Erro ao enviar imagem.");
-            }
-        });
-        async function alterar(nome, delta) {
-            const res = await fetch("/atualizar", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, delta })
-            });
+          if (res.ok) {
             const data = await res.json();
-            document.getElementById("contador-" + nome).textContent = data.quantidade;
-        }
+            const imagemPath = data.caminho;
+
+            // Exibir a imagem de Ana
+            const imagemElement = document.getElementById("imagem-upload-ana");
+            imagemElement.src = imagemPath;
+            document.getElementById("imagem-enviada-ana").style.display =
+              "block";
+
+            alert("Imagem enviada com sucesso (Ana)!");
+          } else {
+            alert("Erro ao enviar imagem (Ana).");
+          }
+        });
+
+      // Envio de imagem para Alex
+      document
+        .getElementById("form-imagem-alex")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const formData = new FormData(this);
+          const res = await fetch("/upload-imagem-alex", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const imagemPath = data.caminho;
+
+            // Exibir a imagem de Alex
+            const imagemElement = document.getElementById("imagem-upload-alex");
+            imagemElement.src = imagemPath;
+            document.getElementById("imagem-enviada-alex").style.display =
+              "block";
+
+            alert("Imagem enviada com sucesso (Alex)!");
+          } else {
+            alert("Erro ao enviar imagem (Alex).");
+          }
+        });
+
+      async function alterar(nome, delta) {
+        const res = await fetch("/atualizar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome, delta }),
+        });
+        const data = await res.json();
+        document.getElementById("contador-" + nome).textContent =
+          data.quantidade;
+      }
     </script>
-
-</body>
-
+  </body>
 </html>
