@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Contador de Bebidas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <h1>Contador de Bebidas 🍻</h1>
+
+    <div class="user">
+        <h2>Tu: <span id="contador-tu">{{ dados['tu'] }}</span></h2>
+        <button onclick="alterar('tu', 1)">+1</button>
+        <button onclick="alterar('tu', -1)">-1</button>
+    </div>
+
+    <div class="user">
+        <h2>Amigo: <span id="contador-amigo">{{ dados['amigo'] }}</span></h2>
+        <button onclick="alterar('amigo', 1)">+1</button>
+        <button onclick="alterar('amigo', -1)">-1</button>
+    </div>
+
+    <div class="upload">
+        <h2>Enviar Imagem 📸</h2>
+        <form id="form-imagem" enctype="multipart/form-data">
+            <input type="file" name="imagem" accept="image/*" required>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <div id="imagem-enviada" style="display: none;">
+        <h3>Imagem Enviada:</h3>
+        <img id="imagem-upload" src="" alt="Imagem enviada" style="max-width: 300px; margin-top: 20px;">
+    </div>
+
+
+    <script>
+        document.getElementById("form-imagem").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const res = await fetch("/upload-imagem", {
+                method: "POST",
+                body: formData
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const imagemPath = data.caminho; // Caminho da imagem no servidor
+                // const imagemUrl = imagemPath.replace('static', ''); // Remover "static" para montar o caminho correto no HTML
+
+                // Exibir a imagem
+                const imagemElement = document.getElementById("imagem-upload");
+                imagemElement.src = imagemPath;
+                document.getElementById("imagem-enviada").style.display = 'block';
+
+                alert("Imagem enviada com sucesso!");
+            } else {
+                alert("Erro ao enviar imagem.");
+            }
+        });
+        async function alterar(nome, delta) {
+            const res = await fetch("/atualizar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nome, delta })
+            });
+            const data = await res.json();
+            document.getElementById("contador-" + nome).textContent = data.quantidade;
+        }
+    </script>
+
+</body>
+
+</html>

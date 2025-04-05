@@ -1,0 +1,21 @@
+services:
+  server:
+    image: python
+    volumes:
+      - "./src:/server"
+    working_dir: "/server"
+    ports:
+      - "8080:5000"
+    command: sh -c "pip install --no-cache-dir -r requirements.txt && python3 app.py"
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
